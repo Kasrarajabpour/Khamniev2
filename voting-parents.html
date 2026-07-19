@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>انتخابات انجمن اولیا و مربیان | مدرسه امام خامنه‌ای</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .voting-container { max-width: 1200px; margin: 100px auto 40px; padding: 20px; }
+        .voting-header { 
+            background: rgba(255,255,255,0.95); 
+            border-radius: 30px; 
+            padding: 30px; 
+            text-align: center; 
+            margin-bottom: 30px; 
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            border-right: 6px solid #8e44ad;
+        }
+        .voting-header h1 { color: #1e3c2c; margin-bottom: 10px; }
+        .voting-header .subtitle { color: #8e44ad; font-weight: bold; font-size: 1.1rem; }
+        .voting-header p { color: #555; }
+        
+        .election-info { 
+            background: #8e44ad; 
+            color: white; 
+            border-radius: 20px; 
+            padding: 15px; 
+            margin-top: 15px; 
+            font-weight: bold; 
+        }
+        .round-badge { 
+            background: #6c3483; 
+            color: white; 
+            padding: 5px 18px; 
+            border-radius: 50px; 
+            display: inline-block; 
+            margin-bottom: 15px; 
+            font-size: 0.9rem; 
+        }
+        .candidates-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
+            gap: 25px; 
+            margin-bottom: 30px; 
+        }
+        .candidate-card { 
+            background: white; 
+            border-radius: 25px; 
+            padding: 20px; 
+            text-align: center; 
+            cursor: pointer; 
+            transition: all 0.3s ease; 
+            border: 3px solid transparent; 
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1); 
+        }
+        .candidate-card:hover { 
+            transform: translateY(-5px); 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2); 
+        }
+        .candidate-card.selected { 
+            border-color: #8e44ad; 
+            background: #f4ecf7; 
+            transform: scale(1.02); 
+        }
+        .candidate-card .candidate-img { 
+            width: 120px; 
+            height: 120px; 
+            border-radius: 50%; 
+            object-fit: cover; 
+            margin: 0 auto 15px; 
+            border: 4px solid #8e44ad; 
+        }
+        .candidate-card .candidate-name { 
+            font-size: 1.3rem; 
+            font-weight: bold; 
+            color: #1e3c2c; 
+            margin: 10px 0; 
+        }
+        .candidate-card .candidate-class { 
+            color: #8e44ad; 
+            font-weight: bold; 
+            margin-bottom: 5px; 
+        }
+        .candidate-card .candidate-relation { 
+            color: #666; 
+            font-size: 0.9rem; 
+            margin-bottom: 10px; 
+        }
+        .candidate-card .candidate-slogan { 
+            color: #666; 
+            font-size: 0.9rem; 
+            padding: 10px; 
+            background: #f5f5f5; 
+            border-radius: 15px; 
+        }
+        .candidate-card .checkmark { 
+            display: inline-block; 
+            width: 30px; 
+            height: 30px; 
+            background: #8e44ad; 
+            border-radius: 50%; 
+            line-height: 30px; 
+            margin-top: 10px; 
+            font-weight: bold; 
+            color: white; 
+        }
+        .selected-count { 
+            background: #6c3483; 
+            color: white; 
+            padding: 12px 25px; 
+            border-radius: 50px; 
+            text-align: center; 
+            margin: 20px auto; 
+            display: inline-block; 
+            width: auto; 
+        }
+        .submit-btn { 
+            background: #8e44ad; 
+            color: white; 
+            border: none; 
+            padding: 15px 40px; 
+            font-size: 1.2rem; 
+            font-weight: bold; 
+            border-radius: 50px; 
+            cursor: pointer; 
+            transition: 0.3s; 
+            display: block; 
+            margin: 20px auto; 
+            width: 250px; 
+        }
+        .submit-btn:hover { 
+            background: #6c3483; 
+            transform: scale(1.05); 
+        }
+        .submit-btn:disabled { 
+            background: #ccc; 
+            cursor: not-allowed; 
+            transform: none; 
+        }
+        .already-voted { 
+            text-align: center; 
+            padding: 40px; 
+            background: white; 
+            border-radius: 30px; 
+            margin-top: 50px; 
+        }
+        .already-voted h2 { color: #8e44ad; }
+        .election-closed { 
+            text-align: center; 
+            padding: 40px; 
+            background: #f39c12; 
+            color: white; 
+            border-radius: 30px; 
+        }
+        .election-closed a { color: white; }
+        .no-candidates { 
+            text-align: center; 
+            padding: 40px; 
+            background: white; 
+            border-radius: 30px; 
+        }
+        .parent-info {
+            background: #f4ecf7;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-right: 4px solid #8e44ad;
+        }
+        .parent-info strong { color: #6c3483; }
+        
+        @media (max-width: 768px) { 
+            .voting-container { margin-top: 80px; } 
+            .candidates-grid { grid-template-columns: 1fr; } 
+        }
+    </style>
+</head>
+<body>
+
+    <div class="top-bar">
+        <div class="left-section">
+            <div class="hamburger-menu" id="hamburgerBtn">
+                <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+            </div>
+        </div>
+        <div class="right-section">
+            <div class="profile-section" id="profileSection" style="display: none;">
+                <div class="profile-avatar"><div class="avatar-circle">👤</div></div>
+                <div class="profile-name" id="profileName">کاربر</div>
+                <div class="profile-dropdown"><a href="#" id="logoutBtn">🚪 خروج</a></div>
+            </div>
+        </div>
+    </div>
+
+    <nav class="side-menu" id="sideMenu">
+        <ul>
+            <li><a href="index.html">🏠 صفحه اصلی</a></li>
+            <li><a href="voting.html">🗳️ انتخابات دانش‌آموزی</a></li>
+            <li><a href="voting-parents.html" style="background:#8e44ad; color:white;">👨‍👩‍👦 انتخابات اولیا</a></li>
+            <li><a href="admin.html" id="adminLink" style="display: none;">👑 پنل ادمین</a></li>
+            <li><a href="booking.html">📅 نوبت‌گیری مشاور</a></li>
+            <li><a href="index.html#announcements">📢 اطلاعیه‌ها</a></li>
+        </ul>
+    </nav>
+
+    <div class="voting-container">
+        <div class="voting-header">
+            <h1>👨‍👩‍👦 انتخابات انجمن اولیا و مربیان</h1>
+            <div class="subtitle">🌟 مشارکت والدین در مدیریت مدرسه</div>
+            <p>به ۳ نامزد مورد نظر خود رأی دهید</p>
+            <div class="round-badge" id="roundBadge">📅 دوره شماره ۱</div>
+            <div class="election-info" id="electionInfo">🟢 انتخابات در جریان است</div>
+        </div>
+        <div id="votingArea"></div>
+    </div>
+
+    <script src="data-manager.js"></script>
+    <script>
+        let currentUser = null;
+        let selectedCandidates = [];
+        let candidatesList = [];
+        let hasVoted = false;
+        let electionActive = true;
+        let currentRound = 1;
+        const MAX_VOTES = 3;
+        const PARENTS_ELECTION_KEY = "parents_election";
+        
+        // ==================== منوی همبرگری ====================
+        function initHamburgerMenu() {
+            const hamburgerBtn = document.getElementById('hamburgerBtn');
+            const sideMenu = document.getElementById('sideMenu');
+            if (hamburgerBtn && sideMenu) {
+                hamburgerBtn.addEventListener('click', function(e) { 
+                    e.stopPropagation(); 
+                    hamburgerBtn.classList.toggle('active'); 
+                    sideMenu.classList.toggle('open'); 
+                });
+                const menuLinks = document.querySelectorAll('.side-menu a');
+                menuLinks.forEach(link => { 
+                    link.addEventListener('click', function() { 
+                        hamburgerBtn.classList.remove('active'); 
+                        sideMenu.classList.remove('open'); 
+                    }); 
+                });
+                document.addEventListener('click', function(event) { 
+                    if (!hamburgerBtn.contains(event.target) && !sideMenu.contains(event.target)) { 
+                        hamburgerBtn.classList.remove('active'); 
+                        sideMenu.classList.remove('open'); 
+                    } 
+                });
+            }
+        }
+        
+        // ==================== پروفایل ====================
+        function initProfile() {
+            const profileSection = document.getElementById('profileSection');
+            if(profileSection) {
+                profileSection.addEventListener('click', function(e) { 
+                    e.stopPropagation(); 
+                    profileSection.classList.toggle('active'); 
+                });
+                document.addEventListener('click', function() { 
+                    profileSection.classList.remove('active'); 
+                });
+            }
+            document.getElementById('logoutBtn')?.addEventListener('click', function(e) { 
+                e.preventDefault(); 
+                sessionStorage.removeItem("currentUser"); 
+                window.location.href = "index.html"; 
+            });
+        }
+
+        // ==================== توابع مدیریت انتخابات اولیا ====================
+        function getParentsElectionData() {
+            const saved = localStorage.getItem(PARENTS_ELECTION_KEY);
+            if(saved) {
+                try {
+                    return JSON.parse(saved);
+                } catch(e) {
+                    return getDefaultParentsElectionData();
+                }
+            }
+            return getDefaultParentsElectionData();
+        }
+
+        function getDefaultParentsElectionData() {
+            return {
+                candidates: [],
+                votes: {},
+                election: { active: true, round: 1 }
+            };
+        }
+
+        function saveParentsElectionData(data) {
+            localStorage.setItem(PARENTS_ELECTION_KEY, JSON.stringify(data));
+        }
+
+        async function loadPage() {
+            currentUser = JSON.parse(sessionStorage.getItem("currentUser") || "null");
+            if (!currentUser) { 
+                alert("لطفاً ابتدا وارد شوید!");
+                window.location.href = "index.html"; 
+                return; 
+            }
+            
+            initHamburgerMenu();
+            initProfile();
+            
+            document.getElementById("profileSection").style.display = "flex";
+            document.getElementById("profileName").innerHTML = `${currentUser.firstName} ${currentUser.lastName}`;
+            if(currentUser.role === 'admin') document.getElementById("adminLink").style.display = "block";
+            
+            const data = getParentsElectionData();
+            candidatesList = data.candidates || [];
+            electionActive = data.election?.active !== false;
+            currentRound = data.election?.round || 1;
+            
+            document.getElementById("roundBadge").innerHTML = `📅 دوره شماره ${currentRound}`;
+            hasVoted = data.votes && data.votes[currentUser.nationalCode] !== undefined;
+            
+            renderVotingPage();
+        }
+
+        function renderVotingPage() {
+            const area = document.getElementById("votingArea");
+            const infoDiv = document.getElementById("electionInfo");
+            
+            if (!electionActive) {
+                infoDiv.innerHTML = "🔴 انتخابات بسته است";
+                area.innerHTML = `<div class="election-closed"><h2>⛔ انتخابات به پایان رسیده است</h2><p>از مشارکت شما سپاسگزاریم</p><a href="index.html" style="color:white;">بازگشت به صفحه اصلی</a></div>`;
+                return;
+            }
+            
+            infoDiv.innerHTML = "🟢 انتخابات در جریان است";
+            
+            if (hasVoted) {
+                area.innerHTML = `<div class="already-voted"><h2>✅ شما قبلاً در این دوره شرکت کرده‌اید</h2><p>از مشارکت شما سپاسگزاریم</p><div style="margin-top:20px">📅 دوره شماره ${currentRound}</div><a href="index.html" style="display:inline-block; margin-top:20px; background:#8e44ad; color:white; padding:10px 30px; border-radius:50px; text-decoration:none">بازگشت به صفحه اصلی</a></div>`;
+                return;
+            }
+            
+            if (candidatesList.length === 0) {
+                area.innerHTML = `<div class="no-candidates"><h2>⚠️ هنوز نامزدی ثبت نشده است</h2><p>لطفاً بعداً مراجعه کنید</p><a href="index.html">بازگشت به صفحه اصلی</a></div>`;
+                return;
+            }
+            
+            let html = `
+                <div class="parent-info">
+                    👤 <strong>${currentUser.firstName} ${currentUser.lastName}</strong> عزیز<br>
+                    شما به عنوان <strong>والدین</strong> در این انتخابات شرکت می‌کنید.
+                </div>
+                <div class="candidates-grid">
+            `;
+            
+            candidatesList.forEach(c => {
+                const isSelected = selectedCandidates.includes(c.id);
+                html += `
+                    <div class="candidate-card ${isSelected ? 'selected' : ''}" onclick="toggleCandidate('${c.id}')">
+                        <img src="${c.img || 'https://via.placeholder.com/120?text=والد'}" class="candidate-img" onerror="this.src='https://via.placeholder.com/120?text=والد'">
+                        <div class="candidate-name">${c.name}</div>
+                        <div class="candidate-class">${c.relation || 'والدین'}</div>
+                        <div class="candidate-relation">👨‍👩‍👦 ${c.childName || 'دانش‌آموز'}</div>
+                        <div class="candidate-slogan">📢 "${c.slogan || 'همکاری برای آینده بهتر'}"</div>
+                        ${isSelected ? '<div class="checkmark">✓</div>' : ''}
+                    </div>
+                `;
+            });
+            
+            html += `</div>`;
+            html += `
+                <div style="text-align:center">
+                    <div class="selected-count">🗳️ تعداد انتخاب‌شده: ${selectedCandidates.length} از ${MAX_VOTES}</div>
+                    <button class="submit-btn" id="submitBtn" ${selectedCandidates.length === 0 ? 'disabled' : ''}>ثبت آرای من</button>
+                </div>
+            `;
+            area.innerHTML = html;
+            
+            const submitBtn = document.getElementById("submitBtn");
+            if(submitBtn) submitBtn.addEventListener("click", submitVote);
+        }
+
+        function toggleCandidate(id) {
+            if (hasVoted || !electionActive) return;
+            const index = selectedCandidates.indexOf(id);
+            if (index === -1) {
+                if (selectedCandidates.length >= MAX_VOTES) { 
+                    alert(`حداکثر می‌توانید به ${MAX_VOTES} نفر رأی دهید!`); 
+                    return; 
+                }
+                selectedCandidates.push(id);
+            } else { 
+                selectedCandidates.splice(index, 1); 
+            }
+            renderVotingPage();
+        }
+
+        function submitVote() {
+            if (selectedCandidates.length === 0) { 
+                alert("لطفاً حداقل یک نامزد را انتخاب کنید!"); 
+                return; 
+            }
+            
+            const data = getParentsElectionData();
+            
+            if (data.votes && data.votes[currentUser.nationalCode]) {
+                alert("شما قبلاً رأی داده‌اید!");
+                return;
+            }
+            
+            if (!data.votes) data.votes = {};
+            
+            data.votes[currentUser.nationalCode] = {
+                selectedIds: selectedCandidates,
+                timestamp: new Date().toISOString(),
+                parentName: `${currentUser.firstName} ${currentUser.lastName}`
+            };
+            
+            saveParentsElectionData(data);
+            
+            alert("✅ رأی شما با موفقیت ثبت شد!");
+            hasVoted = true;
+            renderVotingPage();
+        }
+
+        document.addEventListener("DOMContentLoaded", loadPage);
+    </script>
+</body>
+</html>

@@ -1,0 +1,1641 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>پنل مدیریت | مدرسه امام خامنه‌ای</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* ===== متغیرهای پیشرفته ===== */
+        :root {
+            --admin-primary: #0f1f15;
+            --admin-secondary: #1a3a28;
+            --admin-gold: #ffd966;
+            --admin-gold-dark: #e6b800;
+            --admin-orange: #ff8c00;
+            --admin-gradient: linear-gradient(135deg, #0f1f15, #1a3a28, #0f1f15);
+            --admin-card-bg: rgba(255,255,255,0.03);
+            --admin-border: rgba(255,215,0,0.08);
+            --admin-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            --admin-glow: 0 0 40px rgba(255,215,0,0.03);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            background: var(--admin-gradient);
+            min-height: 100vh;
+        }
+
+        /* ===== کانتینر اصلی ===== */
+        .admin-container {
+            max-width: 1400px;
+            margin: 90px auto 40px;
+            padding: 20px;
+            position: relative;
+        }
+
+        /* ===== هدر پیشرفته ===== */
+        .admin-header {
+            background: rgba(255,255,255,0.04);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 30px;
+            padding: 35px 40px;
+            margin-bottom: 35px;
+            border: 1px solid var(--admin-border);
+            box-shadow: var(--admin-shadow), var(--admin-glow);
+            position: relative;
+            overflow: hidden;
+        }
+        .admin-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -30%;
+            width: 60%;
+            height: 200%;
+            background: radial-gradient(ellipse, rgba(255,215,0,0.03) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .admin-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--admin-gold), transparent);
+            animation: headerGlow 3s ease-in-out infinite;
+        }
+        @keyframes headerGlow {
+            0%, 100% { opacity: 0.3; transform: scaleX(0.8); }
+            50% { opacity: 1; transform: scaleX(1); }
+        }
+
+        .admin-header h1 {
+            color: var(--admin-gold);
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            text-shadow: 0 0 40px rgba(255,215,0,0.1);
+        }
+        .admin-header h1 .badge {
+            background: rgba(255,215,0,0.15);
+            color: var(--admin-gold);
+            font-size: 0.7rem;
+            padding: 4px 14px;
+            border-radius: 50px;
+            font-weight: 600;
+            border: 1px solid rgba(255,215,0,0.15);
+        }
+        .admin-header p {
+            color: rgba(255,255,255,0.6);
+            font-size: 1rem;
+            margin: 0;
+        }
+        .admin-header .stats-row {
+            display: flex;
+            gap: 30px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        .admin-header .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: rgba(255,255,255,0.7);
+            font-size: 0.9rem;
+        }
+        .admin-header .stat-item .num {
+            color: var(--admin-gold);
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        /* ===== تب‌های حرفه‌ای ===== */
+        .admin-tabs {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+            padding: 6px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 20px;
+            border: 1px solid var(--admin-border);
+            backdrop-filter: blur(10px);
+        }
+        .tab-btn {
+            background: transparent;
+            color: rgba(255,255,255,0.5);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            font-size: 0.9rem;
+            font-weight: 600;
+            font-family: inherit;
+            position: relative;
+        }
+        .tab-btn:hover {
+            color: rgba(255,255,255,0.8);
+            background: rgba(255,255,255,0.05);
+            transform: translateY(-2px);
+        }
+        .tab-btn.active {
+            background: linear-gradient(135deg, var(--admin-gold), var(--admin-gold-dark));
+            color: #0f1f15;
+            box-shadow: 0 8px 30px rgba(255,215,0,0.2);
+            transform: translateY(-2px);
+        }
+        .tab-btn .tab-icon {
+            margin-left: 8px;
+        }
+        .tab-btn .tab-badge {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            background: #e74c3c;
+            color: white;
+            font-size: 0.55rem;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-weight: 700;
+        }
+
+        /* ===== پنل‌ها ===== */
+        .tab-pane {
+            display: none;
+            background: rgba(255,255,255,0.03);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 30px;
+            border: 1px solid var(--admin-border);
+            box-shadow: var(--admin-shadow);
+            animation: paneIn 0.5s ease;
+        }
+        @keyframes paneIn {
+            from { opacity: 0; transform: translateY(20px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .tab-pane.active { display: block; }
+
+        .tab-pane h2 {
+            color: var(--admin-gold);
+            font-size: 1.4rem;
+            margin-bottom: 25px;
+            border-right: 4px solid var(--admin-gold);
+            padding-right: 18px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .tab-pane h2 .sub {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.3);
+            font-weight: 400;
+        }
+        .tab-pane h3 {
+            color: rgba(255,255,255,0.85);
+            font-size: 1.05rem;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        /* ===== فرم‌ها ===== */
+        .candidate-form {
+            background: rgba(255,255,255,0.04);
+            padding: 25px;
+            border-radius: 18px;
+            margin-bottom: 30px;
+            border: 1px solid var(--admin-border);
+        }
+        .candidate-form input,
+        .candidate-form textarea {
+            width: 100%;
+            padding: 14px 18px;
+            margin: 8px 0;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--admin-border);
+            border-radius: 14px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            color: rgba(255,255,255,0.85);
+            transition: all 0.3s;
+        }
+        .candidate-form input::placeholder,
+        .candidate-form textarea::placeholder {
+            color: rgba(255,255,255,0.2);
+        }
+        .candidate-form input:focus,
+        .candidate-form textarea:focus {
+            border-color: var(--admin-gold);
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(255,215,0,0.05);
+            background: rgba(255,255,255,0.08);
+        }
+        .candidate-form textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .btn-gold {
+            background: linear-gradient(135deg, var(--admin-gold), var(--admin-gold-dark));
+            color: #0f1f15;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 14px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            font-family: inherit;
+            margin-top: 8px;
+        }
+        .btn-gold:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 12px 40px rgba(255,215,0,0.2);
+        }
+        .btn-gold:active { transform: scale(0.97); }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            border: none;
+            padding: 10px 22px;
+            border-radius: 14px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(231,76,60,0.25);
+        }
+
+        .btn-green {
+            background: linear-gradient(135deg, #27ae60, #1e8449);
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 14px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+        .btn-green:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(39,174,96,0.25);
+        }
+
+        .btn-blue {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 14px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+        .btn-blue:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(52,152,219,0.25);
+        }
+
+        /* ===== لیست نامزدها ===== */
+        .candidate-item {
+            background: rgba(255,255,255,0.04);
+            padding: 14px 20px;
+            border-radius: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 8px;
+            border-right: 3px solid var(--admin-gold);
+            transition: all 0.3s;
+        }
+        .candidate-item:hover {
+            background: rgba(255,255,255,0.07);
+            transform: translateX(-4px);
+        }
+        .candidate-item strong {
+            color: rgba(255,255,255,0.9);
+            font-size: 1rem;
+        }
+        .candidate-item small {
+            color: rgba(255,255,255,0.4);
+        }
+
+        .delete-btn {
+            background: rgba(231,76,60,0.2);
+            color: #e74c3c;
+            border: 1px solid rgba(231,76,60,0.2);
+            padding: 5px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.8rem;
+            font-family: inherit;
+        }
+        .delete-btn:hover {
+            background: rgba(231,76,60,0.3);
+            transform: scale(1.05);
+        }
+
+        /* ===== جدول رأی‌دهندگان ===== */
+        .voters-table-container {
+            overflow-x: auto;
+            margin-top: 15px;
+            border-radius: 16px;
+            border: 1px solid var(--admin-border);
+        }
+        .voters-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(255,255,255,0.02);
+        }
+        .voters-table th {
+            background: rgba(255,215,0,0.05);
+            color: var(--admin-gold);
+            padding: 14px 16px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.85rem;
+            border-bottom: 1px solid var(--admin-border);
+        }
+        .voters-table td {
+            padding: 12px 16px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+            color: rgba(255,255,255,0.7);
+            font-size: 0.85rem;
+        }
+        .voters-table tr:hover td {
+            background: rgba(255,255,255,0.03);
+        }
+        .voters-table td:first-child {
+            direction: ltr;
+            font-family: monospace;
+            color: rgba(255,215,0,0.6);
+        }
+
+        /* ===== کارت‌های نتایج ===== */
+        .candidates-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 18px;
+        }
+        .result-card {
+            background: rgba(255,255,255,0.04);
+            border-radius: 18px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid var(--admin-border);
+            transition: all 0.3s;
+        }
+        .result-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(255,215,0,0.2);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+        }
+        .result-name {
+            font-weight: 700;
+            font-size: 1rem;
+            color: rgba(255,255,255,0.9);
+        }
+        .result-class {
+            color: rgba(255,255,255,0.4);
+            font-size: 0.85rem;
+            margin: 4px 0;
+        }
+        .result-votes {
+            font-size: 2.2rem;
+            color: var(--admin-gold);
+            font-weight: 800;
+        }
+        .result-percent {
+            color: rgba(255,255,255,0.3);
+            font-size: 0.85rem;
+        }
+        .result-bar {
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            height: 6px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+        .result-bar-fill {
+            background: linear-gradient(90deg, var(--admin-gold), var(--admin-orange));
+            height: 6px;
+            border-radius: 20px;
+            transition: width 1s ease;
+        }
+
+        .result-stats {
+            color: rgba(255,255,255,0.6);
+            font-size: 1.05rem;
+            margin: 15px 0;
+            padding: 15px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 14px;
+            border: 1px solid var(--admin-border);
+        }
+        .result-stats strong {
+            color: var(--admin-gold);
+        }
+
+        /* ===== دکمه‌های وضعیت ===== */
+        .round-badge {
+            background: rgba(255,215,0,0.1);
+            color: var(--admin-gold);
+            padding: 6px 20px;
+            border-radius: 50px;
+            display: inline-block;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            border: 1px solid rgba(255,215,0,0.1);
+        }
+
+        /* ===== پنل مشاور ===== */
+        .time-slot-manager {
+            display: inline-block;
+            background: rgba(255,255,255,0.04);
+            padding: 8px 16px;
+            margin: 4px;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.8rem;
+            border: 1px solid var(--admin-border);
+            min-width: 140px;
+            text-align: center;
+            color: rgba(255,255,255,0.5);
+        }
+        .time-slot-manager.active {
+            background: rgba(39,174,96,0.2);
+            border-color: #27ae60;
+            color: #27ae60;
+        }
+        .time-slot-manager.inactive {
+            background: rgba(231,76,60,0.15);
+            border-color: rgba(231,76,60,0.3);
+            color: #e74c3c;
+        }
+        .time-slot-manager.booked {
+            background: rgba(243,156,18,0.15);
+            border-color: rgba(243,156,18,0.3);
+            color: #f39c12;
+            cursor: not-allowed;
+        }
+        .time-slot-manager:hover:not(.booked) {
+            transform: scale(1.05);
+            border-color: var(--admin-gold);
+        }
+        .time-slot-manager .slot-status {
+            display: block;
+            font-size: 0.65rem;
+            margin-top: 2px;
+            opacity: 0.6;
+        }
+
+        .manual-book-section {
+            background: rgba(255,255,255,0.03);
+            padding: 25px;
+            border-radius: 18px;
+            margin-top: 20px;
+            border: 1px solid var(--admin-border);
+        }
+        .manual-book-section input,
+        .manual-book-section select {
+            padding: 10px 14px;
+            margin: 4px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--admin-border);
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-family: inherit;
+            color: rgba(255,255,255,0.8);
+            transition: all 0.3s;
+        }
+        .manual-book-section input:focus,
+        .manual-book-section select:focus {
+            border-color: var(--admin-gold);
+            outline: none;
+        }
+        .manual-book-section input::placeholder {
+            color: rgba(255,255,255,0.2);
+        }
+        .manual-book-section select option {
+            background: #1a3a28;
+            color: white;
+        }
+
+        .btn-small {
+            background: linear-gradient(135deg, var(--admin-gold), var(--admin-gold-dark));
+            color: #0f1f15;
+            border: none;
+            padding: 10px 22px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+        .btn-small:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(255,215,0,0.15);
+        }
+
+        .flex-wrap {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: flex-end;
+        }
+        .flex-wrap > div {
+            display: flex;
+            flex-direction: column;
+        }
+        .flex-wrap label {
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.3);
+            margin-bottom: 3px;
+        }
+
+        .legend-box {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 4px;
+            margin-left: 6px;
+            vertical-align: middle;
+        }
+        .legend-active { background: #27ae60; }
+        .legend-inactive { background: #e74c3c; }
+        .legend-booked { background: #f39c12; }
+
+        .inactive-slot-tag {
+            background: rgba(231,76,60,0.15);
+            color: #e74c3c;
+            padding: 3px 12px;
+            border-radius: 12px;
+            margin: 3px;
+            display: inline-block;
+            font-size: 0.75rem;
+            border: 1px solid rgba(231,76,60,0.15);
+        }
+        .booked-slot-tag {
+            background: rgba(243,156,18,0.15);
+            color: #f39c12;
+            padding: 3px 12px;
+            border-radius: 12px;
+            margin: 3px;
+            display: inline-block;
+            font-size: 0.75rem;
+            border: 1px solid rgba(243,156,18,0.15);
+        }
+
+        /* ===== اطلاعیه‌ها ===== */
+        .announcement-form {
+            background: rgba(255,255,255,0.03);
+            padding: 25px;
+            border-radius: 18px;
+            margin-bottom: 30px;
+            border: 1px solid var(--admin-border);
+        }
+        .announcement-form input,
+        .announcement-form textarea {
+            width: 100%;
+            padding: 14px 18px;
+            margin: 8px 0;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--admin-border);
+            border-radius: 14px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            color: rgba(255,255,255,0.85);
+            transition: all 0.3s;
+        }
+        .announcement-form input:focus,
+        .announcement-form textarea:focus {
+            border-color: var(--admin-gold);
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(255,215,0,0.05);
+        }
+        .announcement-form textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .announcement-item {
+            background: rgba(255,255,255,0.03);
+            padding: 16px 20px;
+            border-radius: 16px;
+            margin-bottom: 12px;
+            border-right: 3px solid var(--admin-gold);
+            transition: all 0.3s;
+        }
+        .announcement-item:hover {
+            background: rgba(255,255,255,0.05);
+        }
+        .announcement-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: rgba(255,255,255,0.85);
+            margin-bottom: 4px;
+        }
+        .announcement-message {
+            color: rgba(255,255,255,0.5);
+            font-size: 0.9rem;
+            line-height: 1.6;
+            white-space: pre-line;
+        }
+        .announcement-meta {
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-top: 8px;
+            gap: 8px;
+        }
+        .read-count {
+            background: rgba(255,215,0,0.08);
+            color: var(--admin-gold);
+            padding: 2px 12px;
+            border-radius: 20px;
+            font-size: 0.65rem;
+        }
+        .delete-announcement {
+            background: rgba(231,76,60,0.15);
+            color: #e74c3c;
+            border: 1px solid rgba(231,76,60,0.15);
+            padding: 3px 14px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+        .delete-announcement:hover {
+            background: rgba(231,76,60,0.25);
+        }
+
+        /* ===== پروفایل ===== */
+        .profile-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            position: relative;
+            background: rgba(255,255,255,0.06);
+            padding: 5px 18px 5px 15px;
+            border-radius: 50px;
+            transition: all 0.3s;
+            border: 1px solid var(--admin-border);
+        }
+        .profile-section:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: rgba(255,215,0,0.15);
+        }
+        .profile-section.active {
+            background: rgba(255,255,255,0.12);
+        }
+
+        .avatar-circle {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--admin-gold), var(--admin-gold-dark));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.2);
+            flex-shrink: 0;
+        }
+        .profile-name {
+            color: rgba(255,255,255,0.8);
+            font-weight: 600;
+            font-size: 0.9rem;
+            white-space: nowrap;
+        }
+
+        .profile-dropdown {
+            position: absolute;
+            top: 60px;
+            right: 0;
+            background: #0f1f15;
+            border-radius: 16px;
+            min-width: 200px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 100;
+            overflow: hidden;
+            transform: translateY(-10px);
+            border: 1px solid var(--admin-border);
+        }
+        .profile-section.active .profile-dropdown {
+            opacity: 1;
+            visibility: visible;
+            top: 65px;
+            transform: translateY(0);
+        }
+        .profile-dropdown a {
+            display: block;
+            padding: 13px 22px;
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            transition: all 0.3s;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        .profile-dropdown a:last-child { border-bottom: none; }
+        .profile-dropdown a:hover {
+            background: rgba(255,215,0,0.08);
+            color: var(--admin-gold);
+            padding-right: 32px;
+        }
+
+        /* ===== منوی همبرگری ===== */
+        .hamburger-menu {
+            width: 42px;
+            height: 42px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+            z-index: 1000;
+            border: 1px solid var(--admin-border);
+            transition: all 0.3s;
+            position: relative;
+        }
+        .hamburger-menu:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: rgba(255,215,0,0.2);
+        }
+        .bar {
+            width: 22px;
+            height: 2.5px;
+            background: rgba(255,255,255,0.6);
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+        .hamburger-menu.active .bar:nth-child(1) {
+            transform: translateY(7.5px) rotate(45deg);
+        }
+        .hamburger-menu.active .bar:nth-child(2) {
+            opacity: 0;
+            transform: scaleX(0);
+        }
+        .hamburger-menu.active .bar:nth-child(3) {
+            transform: translateY(-7.5px) rotate(-45deg);
+        }
+
+        /* ===== منوی کناری ===== */
+        .side-menu {
+            position: fixed;
+            top: 0;
+            right: -300px;
+            width: 280px;
+            height: 100vh;
+            background: rgba(15, 31, 21, 0.97);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            box-shadow: -5px 0 40px rgba(0,0,0,0.4);
+            z-index: 999;
+            transition: right 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+            padding-top: 80px;
+            border-right: 2px solid rgba(255,215,0,0.08);
+        }
+        .side-menu.open { right: 0; }
+
+        .side-menu ul {
+            list-style: none;
+            padding: 0 20px;
+        }
+        .side-menu ul li {
+            margin: 14px 0;
+            opacity: 0;
+            transform: translateX(50px);
+            transition: all 0.4s ease;
+        }
+        .side-menu.open ul li {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        .side-menu.open ul li:nth-child(1) { transition-delay: 0.05s; }
+        .side-menu.open ul li:nth-child(2) { transition-delay: 0.1s; }
+        .side-menu.open ul li:nth-child(3) { transition-delay: 0.15s; }
+        .side-menu.open ul li:nth-child(4) { transition-delay: 0.2s; }
+        .side-menu.open ul li:nth-child(5) { transition-delay: 0.25s; }
+
+        .side-menu ul li a {
+            color: rgba(255,255,255,0.6);
+            text-decoration: none;
+            font-size: 1.05rem;
+            display: block;
+            padding: 12px 20px;
+            border-radius: 14px;
+            background: rgba(255,255,255,0.02);
+            transition: all 0.3s;
+            font-weight: 500;
+            border: 1px solid transparent;
+        }
+        .side-menu ul li a:hover {
+            background: rgba(255,215,0,0.08);
+            color: var(--admin-gold);
+            padding-right: 32px;
+            border-color: rgba(255,215,0,0.05);
+        }
+        .side-menu ul li a.active-page {
+            background: rgba(255,215,0,0.1);
+            color: var(--admin-gold);
+            border-color: rgba(255,215,0,0.1);
+        }
+
+        /* ===== ریسپانسیو ===== */
+        @media (max-width: 768px) {
+            .admin-container { margin-top: 75px; padding: 10px; }
+            .admin-header { padding: 25px 20px; }
+            .admin-header h1 { font-size: 1.5rem; flex-wrap: wrap; }
+            .admin-header .stats-row { gap: 15px; }
+            .admin-tabs { gap: 4px; padding: 4px; border-radius: 14px; }
+            .tab-btn { padding: 8px 14px; font-size: 0.75rem; }
+            .tab-pane { padding: 18px; }
+            .flex-wrap { flex-direction: column; }
+            .flex-wrap > div { width: 100%; }
+            .manual-book-section input,
+            .manual-book-section select { width: 100%; }
+            .time-slot-manager { min-width: 100px; font-size: 0.7rem; padding: 5px 10px; }
+            .candidates-grid { grid-template-columns: 1fr 1fr; }
+            .profile-name { display: none; }
+            .side-menu { width: 250px; }
+            .side-menu ul li a { font-size: 0.95rem; padding: 10px 16px; }
+        }
+
+        @media (max-width: 480px) {
+            .admin-header h1 { font-size: 1.2rem; }
+            .admin-header p { font-size: 0.85rem; }
+            .admin-tabs { gap: 3px; }
+            .tab-btn { padding: 6px 10px; font-size: 0.65rem; border-radius: 10px; }
+            .tab-pane { padding: 14px; border-radius: 18px; }
+            .candidate-form { padding: 16px; }
+            .candidates-grid { grid-template-columns: 1fr; }
+            .admin-header .stat-item { font-size: 0.75rem; }
+            .admin-header .stat-item .num { font-size: 0.95rem; }
+            .hamburger-menu { width: 36px; height: 36px; }
+            .bar { width: 18px; height: 2px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== نوار بالا ===== -->
+    <div class="top-bar" style="background:rgba(15,31,21,0.95); backdrop-filter:blur(16px); border-bottom:1px solid rgba(255,215,0,0.05);">
+        <div class="left-section">
+            <div class="hamburger-menu" id="hamburgerBtn">
+                <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+            </div>
+        </div>
+        <div class="right-section">
+            <div class="profile-section" id="profileSection" style="display: none;">
+                <div class="profile-avatar"><div class="avatar-circle">👑</div></div>
+                <div class="profile-name" id="profileName"></div>
+                <div class="profile-dropdown">
+                    <a href="index.html">🏠 صفحه اصلی</a>
+                    <a href="voting.html">🗳️ رأی‌گیری</a>
+                    <a href="booking.html">📅 نوبت‌گیری مشاور</a>
+                    <a href="#" id="logoutBtn">🚪 خروج از حساب</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== منوی همبرگری ===== -->
+    <nav class="side-menu" id="sideMenu">
+        <ul>
+            <li><a href="index.html">🏠 صفحه اصلی</a></li>
+            <li><a href="voting.html">🗳️ رأی‌گیری دانش‌آموزی</a></li>
+            <li><a href="admin.html" class="active-page">👑 پنل ادمین</a></li>
+            <li><a href="booking.html">📅 نوبت‌گیری مشاور</a></li>
+            <li><a href="index.html#announcements">📢 اطلاعیه‌ها</a></li>
+        </ul>
+    </nav>
+
+    <!-- ===== محتوای اصلی ===== -->
+    <div class="admin-container">
+        <!-- هدر -->
+        <div class="admin-header">
+            <h1>
+                👑 پنل مدیریت
+                <span class="badge">نسخه ۱.۰</span>
+            </h1>
+            <p>مدیریت کامل سیستم مدرسه • انتخابات • نوبت‌گیری • اطلاعیه‌ها</p>
+            <div class="stats-row">
+                <div class="stat-item">📋 <span class="num" id="statCandidates">۰</span> نامزد</div>
+                <div class="stat-item">👥 <span class="num" id="statVoters">۰</span> رأی‌دهنده</div>
+                <div class="stat-item">📅 <span class="num" id="statRound">۱</span> دوره</div>
+                <div class="stat-item">📢 <span class="num" id="statAnnouncements">۰</span> اطلاعیه</div>
+            </div>
+        </div>
+
+        <!-- تب‌ها -->
+        <div class="admin-tabs">
+            <button class="tab-btn active" data-tab="candidates">
+                <span class="tab-icon">📋</span> نامزدها
+            </button>
+            <button class="tab-btn" data-tab="voters">
+                <span class="tab-icon">👥</span> رأی‌دهندگان
+            </button>
+            <button class="tab-btn" data-tab="results">
+                <span class="tab-icon">📊</span> نتایج
+            </button>
+            <button class="tab-btn" data-tab="announcements">
+                <span class="tab-icon">📢</span> اطلاعیه
+                <span class="tab-badge" id="announcementTabBadge" style="display:none;">0</span>
+            </button>
+            <button class="tab-btn" data-tab="settings">
+                <span class="tab-icon">⚙️</span> تنظیمات
+            </button>
+            <button class="tab-btn" data-tab="counselor">
+                <span class="tab-icon">👥</span> مشاور
+            </button>
+        </div>
+
+        <!-- ===== تب نامزدها ===== -->
+        <div class="tab-pane active" id="candidatesTab">
+            <h2>➕ افزودن نامزد <span class="sub">ثبت نامزدهای جدید</span></h2>
+            <div class="candidate-form">
+                <input type="text" id="candName" placeholder="نام و نام خانوادگی">
+                <input type="text" id="candClass" placeholder="کلاس">
+                <textarea id="candSlogan" placeholder="شعار انتخاباتی" rows="2"></textarea>
+                <input type="text" id="candImg" placeholder="آدرس عکس (اختیاری)">
+                <button class="btn-gold" onclick="addNewCandidate()">➕ اضافه کردن نامزد</button>
+            </div>
+            <h2>📋 لیست نامزدها <span class="sub">مدیریت نامزدهای ثبت شده</span></h2>
+            <div id="candidatesList"></div>
+        </div>
+
+        <!-- ===== تب رأی‌دهندگان ===== -->
+        <div class="tab-pane" id="votersTab">
+            <h2>👥 رأی‌دهندگان <span class="sub">لیست شرکت‌کنندگان در این دوره</span></h2>
+            <div id="currentRoundInfo" class="round-badge"></div>
+            <div id="votersList"></div>
+        </div>
+
+        <!-- ===== تب نتایج ===== -->
+        <div class="tab-pane" id="resultsTab">
+            <h2>📊 نتایج <span class="sub">آمار و آرای دوره جاری</span></h2>
+            <div id="currentRoundInfoResults" class="round-badge"></div>
+            <div id="resultsArea"></div>
+        </div>
+
+        <!-- ===== تب اطلاعیه ===== -->
+        <div class="tab-pane" id="announcementsTab">
+            <h2>📢 پنل اطلاعیه <span class="sub">ارسال و مدیریت اطلاعیه‌ها</span></h2>
+            <div class="announcement-form">
+                <h3 style="color:rgba(255,255,255,0.7); font-size:1rem;">➕ ارسال اطلاعیه جدید</h3>
+                <input type="text" id="announcementTitle" placeholder="عنوان اطلاعیه">
+                <textarea id="announcementMessage" placeholder="متن اطلاعیه..."></textarea>
+                <button class="btn-gold" onclick="sendAnnouncement()">📢 ارسال اطلاعیه</button>
+            </div>
+            <h3 style="color:rgba(255,255,255,0.7); font-size:1rem;">📋 لیست اطلاعیه‌های ارسال شده</h3>
+            <div id="announcementsList"></div>
+        </div>
+
+        <!-- ===== تب تنظیمات ===== -->
+        <div class="tab-pane" id="settingsTab">
+            <h2>⚙️ تنظیمات انتخابات <span class="sub">مدیریت دوره‌ها و وضعیت</span></h2>
+            <div id="electionStatus"></div>
+            <div id="currentRoundDisplay" class="round-badge"></div>
+            <div style="display:flex; flex-wrap:wrap; gap:10px;">
+                <button class="btn-green" id="toggleElectionBtn">▶️ شروع انتخابات</button>
+                <button class="btn-blue" id="newRoundBtn">🆕 دوره جدید</button>
+            </div>
+            <div style="margin-top:30px; border-top:1px solid var(--admin-border); padding-top:25px;">
+                <h3 style="color:#e74c3c; font-size:1rem;">⚠️ بخش خطرناک</h3>
+                <button class="btn-danger" onclick="resetSystem()">🔄 بازنشانی کامل سیستم</button>
+                <p style="font-size:0.75rem; color:rgba(255,255,255,0.2); margin-top:8px;">همه داده‌ها (کاربران، نامزدها، آراء، نوبت‌ها) پاک می‌شوند.</p>
+            </div>
+        </div>
+
+        <!-- ===== تب پنل مشاور ===== -->
+        <div class="tab-pane" id="counselorTab">
+            <h2>👥 پنل مشاور <span class="sub">مدیریت نوبت‌های مشاوره</span></h2>
+            
+            <div style="margin-bottom:25px;">
+                <h3 style="color:rgba(255,255,255,0.7); font-size:1rem;">📋 نوبت‌های رزرو شده</h3>
+                <button class="btn-blue" onclick="refreshCounselorPanel()" style="padding:6px 16px; font-size:0.8rem; margin-bottom:10px;">🔄 بروزرسانی</button>
+                <div class="voters-table-container">
+                    <table class="voters-table" id="allBookingsTable">
+                        <thead>
+                            <tr><th>کد ملی</th><th>نام</th><th>روز</th><th>ساعت</th><th>تاریخ</th><th>عملیات</th></tr>
+                        </thead>
+                        <tbody id="allBookingsList">
+                            <tr><td colspan="6" style="text-align:center; padding:20px; color:rgba(255,255,255,0.2);">در حال بارگذاری...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div style="margin-bottom:25px;">
+                <h3 style="color:rgba(255,255,255,0.7); font-size:1rem;">⚙️ مدیریت ساعات مشاوره</h3>
+                <div style="margin-bottom:10px; font-size:0.75rem; color:rgba(255,255,255,0.3);">
+                    <span><span class="legend-box legend-active"></span> فعال</span>
+                    <span style="margin-right:15px;"><span class="legend-box legend-inactive"></span> غیرفعال</span>
+                    <span style="margin-right:15px;"><span class="legend-box legend-booked"></span> رزرو شده</span>
+                </div>
+                <div id="timeSlotsManager"></div>
+            </div>
+
+            <div class="manual-book-section">
+                <h3 style="color:rgba(255,255,255,0.7); font-size:1rem;">➕ رزرو دستی + ارسال اطلاعیه</h3>
+                <div style="font-size:0.8rem; color:#27ae60; margin-bottom:10px;">
+                    💡 پس از رزرو، یک اطلاعیه برای دانش‌آموز ارسال می‌شود
+                </div>
+                <div class="flex-wrap">
+                    <div>
+                        <label>کد ملی:</label>
+                        <input type="text" id="manualNationalCode" placeholder="۱۰ رقم" maxlength="10">
+                    </div>
+                    <div>
+                        <label>نام:</label>
+                        <input type="text" id="manualStudentName" placeholder="نام و نام خانوادگی">
+                    </div>
+                    <div>
+                        <label>روز:</label>
+                        <select id="manualDay">
+                            <option value="شنبه">شنبه</option>
+                            <option value="یکشنبه">یکشنبه</option>
+                            <option value="دوشنبه">دوشنبه</option>
+                            <option value="سه‌شنبه">سه‌شنبه</option>
+                            <option value="چهارشنبه">چهارشنبه</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>ساعت:</label>
+                        <select id="manualSlot">
+                            <option value="">انتخاب کنید</option>
+                        </select>
+                    </div>
+                    <div>
+                        <button class="btn-small" onclick="manualReserve()">📅 رزرو + ارسال</button>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top:20px; display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+                <div>
+                    <h3 style="color:rgba(255,255,255,0.5); font-size:0.85rem;">⛔ ساعات غیرفعال</h3>
+                    <div id="inactiveSlotsList" style="margin-top:8px; min-height:30px; padding:8px; background:rgba(255,255,255,0.02); border-radius:12px;"></div>
+                </div>
+                <div>
+                    <h3 style="color:rgba(255,255,255,0.5); font-size:0.85rem;">📌 ساعات رزرو شده</h3>
+                    <div id="bookedSlotsList" style="margin-top:8px; min-height:30px; padding:8px; background:rgba(255,255,255,0.02); border-radius:12px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="data-manager.js"></script>
+    <script>
+        let currentUser = null;
+        let isRendering = false;
+        let refreshInterval = null;
+        
+        const timeSlots = [
+            "08:00 - 08:30", "08:30 - 09:00", "09:00 - 09:30", "09:30 - 10:00",
+            "10:00 - 10:30", "10:30 - 11:00", "11:00 - 11:30", "11:30 - 12:00",
+            "13:00 - 13:30", "13:30 - 14:00", "14:00 - 14:30", "14:30 - 15:00"
+        ];
+        const days = ["شنبه", "یکشنبه", "دوشنبه", "سه‌شنبه", "چهارشنبه"];
+
+        // ==================== منوی همبرگری ====================
+        function initHamburgerMenu() {
+            const hamburgerBtn = document.getElementById('hamburgerBtn');
+            const sideMenu = document.getElementById('sideMenu');
+            if (hamburgerBtn && sideMenu) {
+                hamburgerBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    hamburgerBtn.classList.toggle('active');
+                    sideMenu.classList.toggle('open');
+                });
+                document.addEventListener('click', function(event) {
+                    if (!hamburgerBtn.contains(event.target) && !sideMenu.contains(event.target)) {
+                        hamburgerBtn.classList.remove('active');
+                        sideMenu.classList.remove('open');
+                    }
+                });
+            }
+        }
+
+        // ==================== پروفایل ====================
+        function initProfile() {
+            const profileSection = document.getElementById('profileSection');
+            if(profileSection) {
+                profileSection.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    profileSection.classList.toggle('active');
+                });
+                document.addEventListener('click', function() {
+                    profileSection.classList.remove('active');
+                });
+            }
+            document.getElementById('logoutBtn')?.addEventListener('click', function(e) {
+                e.preventDefault();
+                sessionStorage.removeItem("currentUser");
+                window.location.href = "index.html";
+            });
+        }
+
+        // ==================== تابع کمکی ====================
+        async function getFreshData() {
+            await refreshData();
+            return {
+                bookings: await getCounselorBookings(),
+                activeSlots: await getCounselorActiveSlots(),
+                candidates: await getCandidates(),
+                users: await getUsers(),
+                votes: await getVotes(),
+                currentRound: await getCurrentRound(),
+                electionActive: await getElectionStatus(),
+                announcements: await getAnnouncements()
+            };
+        }
+
+        // ==================== بروزرسانی آمار ====================
+        async function updateStats() {
+            const data = await getFreshData();
+            document.getElementById('statCandidates').textContent = data.candidates.length;
+            document.getElementById('statVoters').textContent = Object.keys(data.votes).filter(k => data.votes[k]?.round === data.currentRound).length;
+            document.getElementById('statRound').textContent = data.currentRound;
+            document.getElementById('statAnnouncements').textContent = data.announcements.length;
+        }
+
+        // ==================== بروزرسانی پنل مشاور ====================
+        async function refreshCounselorPanel() {
+            if (isRendering) return;
+            isRendering = true;
+            try {
+                await renderCounselorPanel();
+                await updateStats();
+                alert("✅ بروزرسانی شد!");
+            } catch(e) { console.error(e); }
+            finally { isRendering = false; }
+        }
+
+        // ==================== رندر پنل مشاور ====================
+        async function renderCounselorPanel() {
+            const data = await getFreshData();
+            const { bookings, activeSlots } = data;
+            
+            const tbody = document.getElementById("allBookingsList");
+            if(tbody) {
+                if(bookings.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:20px; color:rgba(255,255,255,0.2);">هیچ نوبتی رزرو نشده</td></tr>`;
+                } else {
+                    tbody.innerHTML = bookings.map(b => `
+                        <tr>
+                            <td style="font-family:monospace; color:rgba(255,215,0,0.5);">${b.userNationalCode}</td>
+                            <td style="color:rgba(255,255,255,0.7);">${b.userName}</td>
+                            <td style="color:rgba(255,255,255,0.5);">${b.day}</td>
+                            <td style="color:rgba(255,255,255,0.5);">${b.slot}</td>
+                            <td style="font-size:0.75rem; color:rgba(255,255,255,0.3);">${new Date(b.date).toLocaleString('fa-IR')}</td>
+                            <td><button class="delete-btn" onclick="cancelBookingFromAdmin('${b.id}')">لغو</button></td>
+                        </tr>
+                    `).join('');
+                }
+            }
+
+            const container = document.getElementById("timeSlotsManager");
+            if(container) {
+                let html = "";
+                days.forEach(day => {
+                    const dayBookings = bookings.filter(b => b.day === day).map(b => b.slot);
+                    html += `<div style="margin:10px 0; padding:12px; background:rgba(255,255,255,0.02); border-radius:14px; border:1px solid var(--admin-border);">
+                                <strong style="color:rgba(255,255,255,0.6); font-size:0.9rem;">📌 ${day}</strong><br>`;
+                    timeSlots.forEach(slot => {
+                        const isActive = activeSlots[day]?.[slot] !== false;
+                        const isBooked = dayBookings.includes(slot);
+                        let cls = "active", txt = "✅ فعال", click = `toggleSlot('${day}','${slot}')`;
+                        if(isBooked) { cls = "booked"; txt = "📌 رزرو شده"; click = ""; }
+                        else if(!isActive) { cls = "inactive"; txt = "❌ غیرفعال"; }
+                        html += `<span class="time-slot-manager ${cls}" ${click ? `onclick="${click}"` : ''}>${slot} <span class="slot-status">${txt}</span></span>`;
+                    });
+                    html += `</div>`;
+                });
+                container.innerHTML = html;
+            }
+
+            const inactive = [], booked = [];
+            days.forEach(day => {
+                const dayBookings = bookings.filter(b => b.day === day).map(b => b.slot);
+                timeSlots.forEach(slot => {
+                    if(dayBookings.includes(slot)) booked.push(`${day} ${slot}`);
+                    else if(activeSlots[day]?.[slot] === false) inactive.push(`${day} ${slot}`);
+                });
+            });
+            document.getElementById("inactiveSlotsList").innerHTML = inactive.length ? inactive.map(s => `<span class="inactive-slot-tag">⛔ ${s}</span>`).join('') : '<span style="color:#27ae60; font-size:0.8rem;">✅ هیچ ساعتی غیرفعال نیست</span>';
+            document.getElementById("bookedSlotsList").innerHTML = booked.length ? booked.map(s => `<span class="booked-slot-tag">📌 ${s}</span>`).join('') : '<span style="color:rgba(255,255,255,0.2); font-size:0.8rem;">📭 هیچ نوبتی رزرو نشده</span>';
+
+            await updateManualSlotSelect(activeSlots, bookings);
+        }
+
+        // ==================== آپدیت سلکت منو ====================
+        async function updateManualSlotSelect(activeSlots, bookings) {
+            const select = document.getElementById("manualSlot");
+            if(!select) return;
+            const day = document.getElementById("manualDay").value;
+            const dayBookings = (bookings || await getCounselorBookings()).filter(b => b.day === day).map(b => b.slot);
+            const slots = (activeSlots || await getCounselorActiveSlots());
+            
+            select.innerHTML = "";
+            let has = false;
+            timeSlots.forEach(slot => {
+                const isActive = slots[day]?.[slot] !== false;
+                const isBooked = dayBookings.includes(slot);
+                if(isActive && !isBooked) { select.innerHTML += `<option value="${slot}">${slot}</option>`; has = true; }
+                else if(!isActive) select.innerHTML += `<option value="${slot}" disabled>${slot} (غیرفعال)</option>`;
+                else if(isBooked) select.innerHTML += `<option value="${slot}" disabled>${slot} (رزرو)</option>`;
+            });
+            if(!has) select.innerHTML = `<option value="">❌ موجود نیست</option>`;
+        }
+
+        // ==================== توابع پنل مشاور ====================
+        async function toggleSlot(day, slot) {
+            const bookings = await getCounselorBookings();
+            if(bookings.some(b => b.day === day && b.slot === slot)) {
+                alert("⛔ این ساعت رزرو شده!");
+                return;
+            }
+            await toggleCounselorSlot(day, slot);
+            await renderCounselorPanel();
+            await updateStats();
+        }
+
+        async function cancelBookingFromAdmin(id) {
+            if(confirm("لغو شود؟")) {
+                await cancelCounselorBooking(id);
+                await renderCounselorPanel();
+                await updateStats();
+            }
+        }
+
+        async function manualReserve() {
+            const code = document.getElementById("manualNationalCode").value.trim();
+            const name = document.getElementById("manualStudentName").value.trim();
+            const day = document.getElementById("manualDay").value;
+            const slot = document.getElementById("manualSlot").value;
+            
+            if(!code || !name || !slot) { 
+                alert("⚠️ همه فیلدها را پر کنید!"); 
+                return; 
+            }
+            if(!/^\d{10}$/.test(code)) { 
+                alert("⚠️ کد ملی باید ۱۰ رقم باشد!"); 
+                return; 
+            }
+            
+            const data = await getFreshData();
+            if(data.activeSlots[day]?.[slot] === false) { 
+                alert("⛔ این ساعت توسط مشاور غیرفعال شده است!"); 
+                return; 
+            }
+            if(data.bookings.some(b => b.day === day && b.slot === slot)) { 
+                alert("⛔ این ساعت قبلاً رزرو شده است!"); 
+                return; 
+            }
+            
+            const users = await getUsers();
+            const targetUser = users[code];
+            if(!targetUser) {
+                alert("⚠️ این کد ملی در سیستم ثبت نشده است! لطفاً ابتدا دانش‌آموز را ثبت‌نام کنید.");
+                return;
+            }
+            
+            const existing = data.bookings.find(b => b.userNationalCode === code);
+            if(existing) {
+                if(!confirm(`⚠️ ${targetUser.firstName} ${targetUser.lastName} قبلاً یک نوبت فعال دارد (${existing.day} ${existing.slot}). آیا می‌خواهید جایگزین شود؟`)) {
+                    return;
+                }
+                await cancelCounselorBooking(existing.id);
+            }
+            
+            const newBooking = {
+                id: Date.now().toString(),
+                userNationalCode: code,
+                userName: name,
+                day: day,
+                slot: slot,
+                date: new Date().toISOString()
+            };
+            
+            await addCounselorBooking(newBooking);
+            
+            const message = `
+        سلام ${targetUser.firstName} ${targetUser.lastName} گرامی 🌹
+
+        نوبت مشاوره شما با موفقیت ثبت شد:
+
+        📅 روز: ${day}
+        🕐 ساعت: ${slot}
+        👤 مشاور: ${currentUser.firstName} ${currentUser.lastName}
+
+        لطفاً در زمان مقرر در دفتر مشاوره حضور داشته باشید.
+
+        با آرزوی موفقیت 🌟
+        مدیریت مدرسه امام خامنه‌ای
+            `;
+            
+            await addAnnouncement(
+                `✅ نوبت مشاوره شما ثبت شد - ${day} ${slot}`,
+                message,
+                `مشاور مدرسه (${currentUser.firstName} ${currentUser.lastName})`
+            );
+            
+            await renderCounselorPanel();
+            await renderAnnouncements();
+            await updateStats();
+            
+            alert(`✅ نوبت برای ${name} با موفقیت رزرو شد!\n📨 اطلاعیه برای دانش‌آموز ارسال شد.`);
+            
+            document.getElementById("manualNationalCode").value = "";
+            document.getElementById("manualStudentName").value = "";
+        }
+
+        // ==================== توابع اطلاعیه ====================
+        async function renderAnnouncements() {
+            const list = await getAnnouncements();
+            const container = document.getElementById("announcementsList");
+            const badge = document.getElementById("announcementTabBadge");
+            if(!container) return;
+            
+            // آپدیت نشان‌گر تب
+            if(badge) {
+                if(list.length > 0) {
+                    badge.style.display = 'inline';
+                    badge.textContent = list.length;
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+            
+            if(!list.length) { 
+                container.innerHTML = "<p style='text-align:center;padding:20px;color:rgba(255,255,255,0.2);'>هیچ اطلاعیه‌ای ارسال نشده است</p>"; 
+                return; 
+            }
+            container.innerHTML = list.map(a => `
+                <div class="announcement-item">
+                    <div class="announcement-title">📢 ${a.title}</div>
+                    <div class="announcement-message">${a.message}</div>
+                    <div class="announcement-meta">
+                        <span>🕒 ${new Date(a.createdAt).toLocaleString('fa-IR')}</span>
+                        <span>👤 ${a.senderName}</span>
+                        <span class="read-count">👁️ ${a.readBy.length} مشاهده</span>
+                        <button class="delete-announcement" onclick="deleteAnnouncement('${a.id}')">🗑️ حذف</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function sendAnnouncement() {
+            const t = document.getElementById("announcementTitle").value.trim();
+            const m = document.getElementById("announcementMessage").value.trim();
+            if(!t || !m) { alert("عنوان و متن را وارد کنید!"); return; }
+            await addAnnouncement(t, m, `${currentUser.firstName} ${currentUser.lastName}`);
+            document.getElementById("announcementTitle").value = "";
+            document.getElementById("announcementMessage").value = "";
+            await renderAnnouncements();
+            await updateStats();
+            alert("✅ اطلاعیه با موفقیت ارسال شد!");
+        }
+
+        async function deleteAnnouncement(id) {
+            if(!confirm("حذف شود؟")) return;
+            const data = await getData();
+            data.announcements = data.announcements.filter(a => a.id !== id);
+            await saveData(data);
+            await renderAnnouncements();
+            await updateStats();
+        }
+
+        // ==================== توابع اصلی ====================
+        async function renderCandidates() {
+            const list = await getCandidates();
+            const container = document.getElementById("candidatesList");
+            if(!container) return;
+            if(!list.length) { 
+                container.innerHTML = "<p style='text-align:center;padding:20px;color:rgba(255,255,255,0.2);'>هیچ نامزدی ثبت نشده</p>"; 
+                return; 
+            }
+            container.innerHTML = list.map(c => `
+                <div class="candidate-item">
+                    <div><strong>${c.name}</strong> <span style="color:rgba(255,255,255,0.3);">-</span> <span style="color:rgba(255,255,255,0.4);">${c.class}</span> <small style="color:rgba(255,255,255,0.2);">${c.slogan}</small></div>
+                    <button class="delete-btn" onclick="removeCandidate(${c.id})">❌ حذف</button>
+                </div>
+            `).join('');
+        }
+
+        async function renderVoters() {
+            const users = await getUsers();
+            const votes = await getVotes();
+            const round = await getCurrentRound();
+            const voted = [];
+            for(const [code, user] of Object.entries(users)) {
+                if(votes[code]?.round === round) voted.push({...user, time: votes[code].timestamp});
+            }
+            const container = document.getElementById("votersList");
+            if(!container) return;
+            if(!voted.length) { 
+                container.innerHTML = "<p style='text-align:center;padding:20px;color:rgba(255,255,255,0.2);'>📭 هنوز کسی رأی نداده</p>"; 
+                return; 
+            }
+            let html = `<div class="voters-table-container"><table class="voters-table"><thead><tr><th>کد ملی</th><th>نام</th><th>نام خانوادگی</th><th>زمان</th></tr></thead><tbody>`;
+            voted.forEach(u => {
+                html += `<tr><td style="font-family:monospace; color:rgba(255,215,0,0.5);">${u.nationalCode}</td><td style="color:rgba(255,255,255,0.7);">${u.firstName}</td><td style="color:rgba(255,255,255,0.5);">${u.lastName}</td><td style="font-size:0.75rem; color:rgba(255,255,255,0.3);">${u.time ? new Date(u.time).toLocaleString('fa-IR') : '-'}</td></tr>`;
+            });
+            html += `</tbody></table></div>`;
+            container.innerHTML = html;
+        }
+
+        async function renderResults() {
+            const candidates = await getCandidates();
+            const votes = await getVotes();
+            const round = await getCurrentRound();
+            const counts = {};
+            candidates.forEach(c => counts[c.id] = 0);
+            let total = 0;
+            for(const v of Object.values(votes)) {
+                if(v.round === round) { total++; v.selectedIds?.forEach(id => { if(counts[id] !== undefined) counts[id]++; }); }
+            }
+            const container = document.getElementById("resultsArea");
+            if(!container) return;
+            if(!candidates.length) { 
+                container.innerHTML = "<p style='text-align:center;padding:20px;color:rgba(255,255,255,0.2);'>هیچ نامزدی ثبت نشده</p>"; 
+                return; 
+            }
+            let html = `<div class="result-stats">📊 مجموع آرای این دوره: <strong>${total}</strong> رأی</div><div class="candidates-grid">`;
+            candidates.forEach(c => {
+                const p = total ? ((counts[c.id]/total)*100).toFixed(1) : 0;
+                html += `<div class="result-card">
+                            <div class="result-name">${c.name}</div>
+                            <div class="result-class">${c.class}</div>
+                            <div class="result-votes">${counts[c.id]}</div>
+                            <div class="result-percent">${p}%</div>
+                            <div class="result-bar"><div class="result-bar-fill" style="width:${p}%"></div></div>
+                        </div>`;
+            });
+            html += `</div>`;
+            container.innerHTML = html;
+        }
+
+        async function updateElectionUI() {
+            const active = await getElectionStatus();
+            const round = await getCurrentRound();
+            const status = document.getElementById("electionStatus");
+            const btn = document.getElementById("toggleElectionBtn");
+            if(status) status.innerHTML = `<div style="background:${active?'rgba(39,174,96,0.15)':'rgba(231,76,60,0.15)'}; border:1px solid ${active?'rgba(39,174,96,0.2)':'rgba(231,76,60,0.2)'}; color:${active?'#27ae60':'#e74c3c'}; padding:15px; border-radius:16px; margin-bottom:15px;">
+                وضعیت فعلی: ${active ? '🟢 انتخابات در جریان است' : '🔴 انتخابات بسته است'} <br>
+                <span style="font-size:0.85rem; opacity:0.6;">دوره جاری: شماره ${round}</span>
+            </div>`;
+            if(btn) btn.textContent = active ? '⏹️ توقف انتخابات' : '▶️ شروع انتخابات';
+            document.querySelectorAll('#currentRoundInfo, #currentRoundInfoResults, #currentRoundDisplay').forEach(el => {
+                if(el) el.textContent = `📅 دوره شماره ${round}`;
+            });
+        }
+
+        // ==================== عملیات ====================
+        async function addNewCandidate() {
+            const n = document.getElementById("candName").value.trim();
+            const c = document.getElementById("candClass").value.trim();
+            const s = document.getElementById("candSlogan").value.trim();
+            const i = document.getElementById("candImg").value.trim();
+            if(!n || !c) { alert("نام و کلاس الزامی!"); return; }
+            await addCandidate(n, c, s, i);
+            document.getElementById("candName").value = "";
+            document.getElementById("candClass").value = "";
+            document.getElementById("candSlogan").value = "";
+            document.getElementById("candImg").value = "";
+            await renderCandidates();
+            await renderResults();
+            await updateStats();
+        }
+
+        async function removeCandidate(id) {
+            if(!confirm("حذف شود؟")) return;
+            await deleteCandidate(id);
+            await renderCandidates();
+            await renderResults();
+            await updateStats();
+        }
+
+        async function startNewRound() {
+            if(!confirm("دوره جدید شروع شود؟")) return;
+            const r = await startNewElectionRound();
+            if(r.success) { 
+                alert(`✅ دوره ${r.round} شروع شد!`); 
+                await renderAll(); 
+                await updateStats();
+            }
+        }
+
+        async function resetSystem() {
+            if(!confirm("⚠️ همه داده‌ها پاک می‌شوند! ادامه؟")) return;
+            await resetAllData();
+            alert("✅ بازنشانی شد!");
+            location.reload();
+        }
+
+        // ==================== رندر همه ====================
+        async function renderAll() {
+            await Promise.all([
+                renderCandidates(),
+                renderVoters(),
+                renderResults(),
+                renderAnnouncements(),
+                renderCounselorPanel(),
+                updateElectionUI(),
+                updateStats()
+            ]);
+        }
+
+        // ==================== مقداردهی اولیه ====================
+        async function init() {
+            currentUser = JSON.parse(sessionStorage.getItem("currentUser") || "null");
+            if(!currentUser || currentUser.role !== 'admin') {
+                alert("⚠️ فقط ادمین!");
+                window.location.href = "index.html";
+                return;
+            }
+            document.getElementById("profileName").textContent = `${currentUser.firstName} ${currentUser.lastName}`;
+            document.getElementById("profileSection").style.display = "flex";
+            
+            initHamburgerMenu();
+            initProfile();
+            
+            await renderAll();
+            
+            if(refreshInterval) clearInterval(refreshInterval);
+            refreshInterval = setInterval(async () => {
+                if(!isRendering) {
+                    await renderCounselorPanel();
+                    await updateStats();
+                }
+            }, 30000);
+        }
+
+        // ==================== تب‌ها ====================
+        document.querySelectorAll(".tab-btn").forEach(btn => {
+            btn.addEventListener("click", async () => {
+                document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+                document.querySelectorAll(".tab-pane").forEach(p => p.classList.remove("active"));
+                btn.classList.add("active");
+                const id = btn.dataset.tab + "Tab";
+                document.getElementById(id).classList.add("active");
+                if(btn.dataset.tab === 'counselor') await renderCounselorPanel();
+                if(btn.dataset.tab === 'voters') await renderVoters();
+                if(btn.dataset.tab === 'results') await renderResults();
+                if(btn.dataset.tab === 'candidates') await renderCandidates();
+                if(btn.dataset.tab === 'announcements') await renderAnnouncements();
+                if(btn.dataset.tab === 'settings') await updateElectionUI();
+            });
+        });
+
+        document.getElementById("toggleElectionBtn")?.addEventListener("click", async () => {
+            const active = await getElectionStatus();
+            await setElectionStatus(!active);
+            await updateElectionUI();
+            alert(!active ? "✅ انتخابات شروع شد!" : "⏹️ انتخابات متوقف شد!");
+        });
+
+        document.getElementById("newRoundBtn")?.addEventListener("click", startNewRound);
+        document.getElementById("manualDay")?.addEventListener("change", () => updateManualSlotSelect());
+
+        document.addEventListener("DOMContentLoaded", init);
+    </script>
+</body>
+</html>

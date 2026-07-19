@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نوبت‌گیری مشاور | مدرسه امام خامنه‌ای</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .booking-container { max-width: 800px; margin: 100px auto 40px; padding: 20px; }
+        .booking-header { background: white; border-radius: 30px; padding: 30px; text-align: center; margin-bottom: 30px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
+        .booking-header h1 { color: #1e3c2c; margin-bottom: 10px; }
+        .booking-card { background: white; border-radius: 25px; padding: 25px; margin-bottom: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
+        .booking-card h3 { color: #1e3c2c; margin-bottom: 20px; border-right: 4px solid #ff8c00; padding-right: 15px; }
+        .time-slot { display: inline-block; background: #1e3c2c; color: white; padding: 10px 20px; border-radius: 25px; margin: 5px; cursor: pointer; transition: 0.3s; }
+        .time-slot:hover { background: #ff8c00; transform: scale(1.02); }
+        .time-slot.booked { background: #ccc; cursor: not-allowed; }
+        .time-slot.booked:hover { background: #ccc; transform: none; }
+        .time-slot.selected { background: #ff8c00; }
+        .time-slot.my-booking { background: #27ae60; }
+        .time-slot.my-booking:hover { background: #27ae60; transform: none; }
+        .submit-btn { background: #ff8c00; color: white; border: none; padding: 12px 30px; border-radius: 50px; font-size: 1rem; cursor: pointer; margin-top: 20px; width: 100%; }
+        .submit-btn:hover { background: #e67e00; }
+        .info-text { color: #666; font-size: 0.9rem; margin-top: 15px; text-align: center; }
+        .my-bookings { background: #f5f5f5; border-radius: 20px; padding: 20px; margin-top: 30px; }
+        .booking-item { background: white; padding: 15px; border-radius: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .cancel-btn { background: #e74c3c; color: white; border: none; padding: 5px 15px; border-radius: 20px; cursor: pointer; }
+        .cancel-btn:hover { background: #c0392b; }
+        .empty-msg { text-align: center; color: #999; padding: 20px; }
+        .login-warning { text-align: center; padding: 50px; background: white; border-radius: 30px; }
+        .day-title { margin: 20px 0 10px 0; font-size: 1.2rem; color: #1e3c2c; border-bottom: 2px solid #ffd966; display: inline-block; }
+        .refresh-btn { background: #3498db; color: white; border: none; padding: 8px 20px; border-radius: 20px; cursor: pointer; font-size: 0.9rem; margin-right: 10px; }
+        .refresh-btn:hover { background: #2980b9; }
+        .legend-box { display: inline-block; width: 16px; height: 16px; border-radius: 4px; margin-left: 5px; vertical-align: middle; }
+        .legend-available { background: #1e3c2c; }
+        .legend-booked { background: #ccc; }
+        .legend-selected { background: #ff8c00; }
+        .legend-mybooking { background: #27ae60; }
+        .status-msg { padding: 15px; border-radius: 15px; margin-top: 15px; text-align: center; font-weight: bold; }
+        .status-msg.active { background: #d4edda; color: #155724; }
+        .status-msg.inactive { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+
+    <div class="top-bar">
+        <div class="left-section">
+            <div class="hamburger-menu" id="hamburgerBtn">
+                <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+            </div>
+        </div>
+        <div class="right-section">
+            <div class="profile-section" id="profileSection" style="display: none;">
+                <div class="profile-avatar"><div class="avatar-circle">👤</div></div>
+                <div class="profile-name" id="profileName">کاربر</div>
+                <div class="profile-dropdown"><a href="#" id="logoutBtn">🚪 خروج</a></div>
+            </div>
+        </div>
+    </div>
+
+    <nav class="side-menu" id="sideMenu">
+        <ul>
+            <li><a href="index.html">🏠 صفحه اصلی</a></li>
+            <li><a href="voting.html">🗳️ رأی‌گیری شورای دانش‌آموزی</a></li>
+            <li><a href="admin.html" id="adminLink" style="display: none;">👑 پنل ادمین</a></li>
+            <li><a href="booking.html">📅 نوبت‌گیری مشاور مدرسه</a></li>
+            <li><a href="index.html#announcements">📢 اطلاعیه‌های مدرسه</a></li>
+        </ul>
+    </nav>
+
+    <div class="booking-container" id="bookingContainer">
+        <!-- محتوا توسط جاوااسکریپت پر می‌شود -->
+    </div>
+
+    <script src="data-manager.js"></script>
+    <script>
+        let currentUser = null;
+        let selectedSlot = null;
+        let selectedDay = null;
+        let refreshInterval = null;
+        
+        const timeSlots = [
+            "08:00 - 08:30", "08:30 - 09:00", "09:00 - 09:30", "09:30 - 10:00",
+            "10:00 - 10:30", "10:30 - 11:00", "11:00 - 11:30", "11:30 - 12:00",
+            "13:00 - 13:30", "13:30 - 14:00", "14:00 - 14:30", "14:30 - 15:00"
+        ];
+        
+        const days = ["شنبه", "یکشنبه", "دوشنبه", "سه‌شنبه", "چهارشنبه"];
+        
+        // ==================== منوی همبرگری ====================
+        function initHamburgerMenu() {
+            const hamburgerBtn = document.getElementById('hamburgerBtn');
+            const sideMenu = document.getElementById('sideMenu');
+            if (hamburgerBtn && sideMenu) {
+                hamburgerBtn.addEventListener('click', function(e) { 
+                    e.stopPropagation(); 
+                    hamburgerBtn.classList.toggle('active'); 
+                    sideMenu.classList.toggle('open'); 
+                });
+                const menuLinks = document.querySelectorAll('.side-menu a');
+                menuLinks.forEach(link => { 
+                    link.addEventListener('click', function() { 
+                        hamburgerBtn.classList.remove('active'); 
+                        sideMenu.classList.remove('open'); 
+                    }); 
+                });
+                document.addEventListener('click', function(event) { 
+                    if (!hamburgerBtn.contains(event.target) && !sideMenu.contains(event.target)) { 
+                        hamburgerBtn.classList.remove('active'); 
+                        sideMenu.classList.remove('open'); 
+                    } 
+                });
+            }
+        }
+        
+        // ==================== پروفایل ====================
+        function initProfile() {
+            const profileSection = document.getElementById('profileSection');
+            if(profileSection) {
+                profileSection.addEventListener('click', function(e) { 
+                    e.stopPropagation(); 
+                    profileSection.classList.toggle('active'); 
+                });
+                document.addEventListener('click', function() { 
+                    profileSection.classList.remove('active'); 
+                });
+            }
+            document.getElementById('logoutBtn')?.addEventListener('click', function(e) { 
+                e.preventDefault(); 
+                sessionStorage.removeItem("currentUser"); 
+                window.location.href = "index.html"; 
+            });
+        }
+        
+        // ==================== گرفتن داده‌های تازه از سرور ====================
+        async function loadFreshData() {
+            try {
+                await refreshData();
+                const bookings = await getCounselorBookings();
+                const activeSlots = await getCounselorActiveSlots();
+                return { bookings, activeSlots };
+            } catch (error) {
+                console.error("خطا:", error);
+                return { bookings: [], activeSlots: {} };
+            }
+        }
+        
+        // ==================== تابع بروزرسانی ====================
+        async function refreshBookingPage() {
+            await renderBookingPage();
+            alert("✅ وضعیت نوبت‌ها بروزرسانی شد!");
+        }
+        
+        // ==================== رندر اصلی ====================
+        async function renderBookingPage() {
+            const container = document.getElementById("bookingContainer");
+            if(!container) return;
+            
+            if(!currentUser) {
+                container.innerHTML = `
+                    <div class="login-warning">
+                        <h2>🔐 برای نوبت‌گیری ابتدا وارد شوید</h2>
+                        <p>لطفاً از صفحه اصلی وارد حساب کاربری خود شوید</p>
+                        <a href="index.html" style="display:inline-block; margin-top:20px; background:#ff8c00; color:white; padding:10px 30px; border-radius:50px; text-decoration:none">ورود / ثبت‌نام</a>
+                    </div>
+                `;
+                return;
+            }
+            
+            // گرفتن داده‌های تازه
+            const { bookings, activeSlots } = await loadFreshData();
+            
+            console.log("📋 نوبت‌ها:", bookings);
+            console.log("⚙️ ساعات فعال:", activeSlots);
+            
+            const myBookings = bookings.filter(b => b.userNationalCode === currentUser.nationalCode);
+            const hasActiveBooking = myBookings.length > 0;
+            
+            // اگر نوبت انتخاب شده غیرفعال یا رزرو شده، لغو کن
+            if (selectedDay && selectedSlot) {
+                const isInactive = activeSlots[selectedDay]?.[selectedSlot] === false;
+                const isBooked = bookings.some(b => b.day === selectedDay && b.slot === selectedSlot);
+                if (isInactive || isBooked) {
+                    selectedDay = null;
+                    selectedSlot = null;
+                }
+            }
+            
+            let html = `
+                <div class="booking-header">
+                    <h1>📅 نوبت‌گیری مشاور مدرسه</h1>
+                    <p>${currentUser.firstName} ${currentUser.lastName} عزیز، لطفاً زمان مناسب خود را انتخاب کنید</p>
+                    <div style="margin-top:15px;">
+                        <button class="refresh-btn" onclick="refreshBookingPage()">🔄 بروزرسانی</button>
+                        <span style="font-size:0.8rem; color:#999; margin-right:10px;">آخرین بروزرسانی: ${new Date().toLocaleTimeString('fa-IR')}</span>
+                    </div>
+                    <div style="margin-top:10px; font-size:0.85rem; color:#666; display:flex; flex-wrap:wrap; justify-content:center; gap:10px;">
+                        <span><span class="legend-box legend-available"></span> موجود</span>
+                        <span><span class="legend-box legend-booked"></span> رزرو شده</span>
+                        <span><span class="legend-box legend-mybooking"></span> نوبت من</span>
+                        <span><span class="legend-box legend-selected"></span> انتخاب شده</span>
+                    </div>
+                </div>
+                
+                <div class="booking-card">
+                    <h3>🗓️ انتخاب زمان مشاوره</h3>
+            `;
+            
+            let hasAnyAvailable = false;
+            let totalSlots = 0;
+            let availableSlots = 0;
+            
+            for (const day of days) {
+                html += `<div><div class="day-title">📌 ${day}</div><div style="margin: 10px 0;">`;
+                
+                let dayHasAvailable = false;
+                
+                for (const slot of timeSlots) {
+                    totalSlots++;
+                    
+                    // ===== بررسی وضعیت =====
+                    const isInactive = activeSlots[day]?.[slot] === false;
+                    const isBooked = bookings.some(b => b.day === day && b.slot === slot);
+                    const isMyBooking = myBookings.some(b => b.day === day && b.slot === slot);
+                    const isSelected = (selectedDay === day && selectedSlot === slot);
+                    
+                    // ===== اگر غیرفعال است، نمایش نده =====
+                    if (isInactive) {
+                        continue; // این خط باعث میشه ساعت غیرفعال اصلا نمایش داده نشه
+                    }
+                    
+                    let statusClass = "";
+                    let onclickFunc = "";
+                    let displayText = slot;
+                    
+                    if(isMyBooking) {
+                        statusClass = "my-booking";
+                        onclickFunc = "";
+                        displayText = slot + " ✅ (نوبت شما)";
+                    } else if(isSelected) {
+                        statusClass = "selected";
+                        onclickFunc = "";
+                        displayText = slot + " ✓ (انتخاب شما)";
+                    } else if(isBooked) {
+                        statusClass = "booked";
+                        onclickFunc = "";
+                        displayText = slot + " 🔒 (رزرو شده)";
+                    } else {
+                        statusClass = "";
+                        onclickFunc = `selectSlot('${day}', '${slot}')`;
+                        displayText = slot + " ✅";
+                        hasAnyAvailable = true;
+                        dayHasAvailable = true;
+                        availableSlots++;
+                    }
+                    
+                    if(onclickFunc) {
+                        html += `<span class="time-slot ${statusClass}" onclick="${onclickFunc}">${displayText}</span>`;
+                    } else {
+                        html += `<span class="time-slot ${statusClass}">${displayText}</span>`;
+                    }
+                }
+                
+                // اگر هیچ ساعتی در این روز موجود نبود، پیام نمایش بده
+                if (!dayHasAvailable) {
+                    html += `<div style="color:#999; font-size:0.9rem; padding:10px 0;">❌ هیچ ساعتی در این روز موجود نیست</div>`;
+                }
+                
+                html += `</div></div>`;
+            }
+            
+            // دکمه تایید نوبت
+            if(selectedDay && selectedSlot && !hasActiveBooking) {
+                const stillInactive = activeSlots[selectedDay]?.[selectedSlot] === false;
+                const stillBooked = bookings.some(b => b.day === selectedDay && b.slot === selectedSlot);
+                
+                if(!stillInactive && !stillBooked) {
+                    html += `<div style="text-align:center; margin-top:20px;">
+                                <button class="submit-btn" onclick="confirmBooking()">✅ تأیید نوبت ${selectedDay} ${selectedSlot}</button>
+                            </div>`;
+                } else {
+                    selectedDay = null;
+                    selectedSlot = null;
+                }
+            }
+            
+            html += `</div>`;
+            
+            // نمایش نوبت‌های من
+            html += `<div class="my-bookings"><h3>📋 نوبت‌های من</h3>`;
+            if(myBookings.length === 0) {
+                html += `<div class="empty-msg">شما هنوز نوبتی رزرو نکرده‌اید</div>`;
+            } else {
+                for (const b of myBookings) {
+                    // چک کن که نوبت هنوز غیرفعال نشده باشه
+                    const isInactive = activeSlots[b.day]?.[b.slot] === false;
+                    if (isInactive) {
+                        // اگر نوبت غیرفعال شده، از لیست حذفش کن
+                        await cancelCounselorBooking(b.id);
+                        continue;
+                    }
+                    html += `
+                        <div class="booking-item">
+                            <div>
+                                <strong>${b.day}</strong> - ${b.slot}
+                                <div style="font-size:0.8rem; color:#888;">تاریخ رزرو: ${new Date(b.date).toLocaleString('fa-IR')}</div>
+                            </div>
+                            <button class="cancel-btn" onclick="cancelMyBooking('${b.id}')">لغو نوبت</button>
+                        </div>
+                    `;
+                }
+            }
+            html += `</div>`;
+            
+            // اگر هیچ ساعتی موجود نبود
+            if (!hasAnyAvailable) {
+                html += `<div class="status-msg inactive">⛔ در حال حاضر هیچ ساعتی برای رزرو موجود نیست. لطفاً بعداً مراجعه کنید.</div>`;
+            } else {
+                html += `<div class="status-msg active">✅ ${availableSlots} ساعت برای رزرو موجود است</div>`;
+            }
+            
+            html += `<div class="info-text">💡 نکته: هر دانش‌آموز فقط می‌تواند یک نوبت فعال داشته باشد. برای رزرو نوبت جدید، نوبت قبلی را لغو کنید.</div>`;
+            
+            container.innerHTML = html;
+        }
+        
+        // ==================== انتخاب نوبت ====================
+        function selectSlot(day, slot) {
+            loadFreshData().then(({ bookings, activeSlots }) => {
+                const isInactive = activeSlots[day]?.[slot] === false;
+                const isBooked = bookings.some(b => b.day === day && b.slot === slot);
+                
+                if (isInactive) {
+                    alert("⛔ این ساعت توسط مشاور غیرفعال شده است!");
+                    renderBookingPage();
+                    return;
+                }
+                if (isBooked) {
+                    alert("⛔ این نوبت قبلاً رزرو شده است!");
+                    renderBookingPage();
+                    return;
+                }
+                
+                selectedDay = day;
+                selectedSlot = slot;
+                renderBookingPage();
+            });
+        }
+        
+        // ==================== تایید نوبت ====================
+        async function confirmBooking() {
+            if(!selectedDay || !selectedSlot) return;
+            
+            const { bookings, activeSlots } = await loadFreshData();
+            
+            const hasActive = bookings.some(b => b.userNationalCode === currentUser.nationalCode);
+            if(hasActive) {
+                alert("⛔ شما قبلاً یک نوبت فعال دارید. لطفاً ابتدا نوبت قبلی را لغو کنید.");
+                selectedDay = null;
+                selectedSlot = null;
+                renderBookingPage();
+                return;
+            }
+            
+            const isInactive = activeSlots[selectedDay]?.[selectedSlot] === false;
+            if(isInactive) {
+                alert("⛔ این ساعت توسط مشاور غیرفعال شده است!");
+                selectedDay = null;
+                selectedSlot = null;
+                renderBookingPage();
+                return;
+            }
+            
+            const isBooked = bookings.some(b => b.day === selectedDay && b.slot === selectedSlot);
+            if(isBooked) {
+                alert("⛔ این نوبت قبلاً رزرو شده است!");
+                selectedDay = null;
+                selectedSlot = null;
+                renderBookingPage();
+                return;
+            }
+            
+            if(confirm(`آیا از رزرو نوبت ${selectedDay} ${selectedSlot} مطمئن هستید؟`)) {
+                const newBooking = {
+                    id: Date.now().toString(),
+                    userNationalCode: currentUser.nationalCode,
+                    userName: `${currentUser.firstName} ${currentUser.lastName}`,
+                    day: selectedDay,
+                    slot: selectedSlot,
+                    date: new Date().toISOString()
+                };
+                
+                await addCounselorBooking(newBooking);
+                selectedDay = null;
+                selectedSlot = null;
+                await renderBookingPage();
+                alert("✅ نوبت شما با موفقیت رزرو شد!");
+            }
+        }
+        
+        // ==================== لغو نوبت ====================
+        async function cancelMyBooking(bookingId) {
+            if(confirm("آیا از لغو این نوبت مطمئن هستید؟")) {
+                await cancelCounselorBooking(bookingId);
+                await renderBookingPage();
+                alert("✅ نوبت شما لغو شد!");
+            }
+        }
+        
+        // ==================== بارگذاری اولیه ====================
+        async function loadPage() {
+            currentUser = JSON.parse(sessionStorage.getItem("currentUser") || "null");
+            
+            if(currentUser) {
+                document.getElementById("profileSection").style.display = "flex";
+                document.getElementById("profileName").innerHTML = `${currentUser.firstName} ${currentUser.lastName}`;
+                if(currentUser.role === 'admin') document.getElementById("adminLink").style.display = "block";
+            }
+            
+            initHamburgerMenu();
+            initProfile();
+            await renderBookingPage();
+            
+            // بروزرسانی هر 15 ثانیه
+            refreshInterval = setInterval(async () => {
+                await renderBookingPage();
+                console.log("🔄 بروزرسانی خودکار در", new Date().toLocaleTimeString());
+            }, 15000);
+        }
+        
+        document.addEventListener("DOMContentLoaded", loadPage);
+    </script>
+</body>
+</html>
